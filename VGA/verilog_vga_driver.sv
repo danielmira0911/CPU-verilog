@@ -1,71 +1,71 @@
 module vga_driver (
     input wire clock,     // 25 MHz
-    input wire reset,     // Active high
+    input wire reset,     // Activar high
     input [7:0] color_in, // Pixel color data (RRRGGGBB)
-    output [9:0] next_x,  // x-coordinate of NEXT pixel that will be drawn
-    output [9:0] next_y,  // y-coordinate of NEXT pixel that will be drawn
-    output wire hsync,    // HSYNC (to VGA connector)
-    output wire vsync,    // VSYNC (to VGA connector)
-    output [7:0] red,     // RED (to resistor DAC VGA connector)
-    output [7:0] green,   // GREEN (to resistor DAC to VGA connector)
-    output [7:0] blue,    // BLUE (to resistor DAC to VGA connector)
-    output sync,          // SYNC to VGA connector
-    output clk,           // CLK to VGA connector
-    output blank          // BLANK to VGA connector
+    output [9:0] next_x,  // x-cordenada del SIGUIENTE pixel que será pintado
+    output [9:0] next_y,  // y-cordenada del SIGUIENTE pixel que será pintado
+    output wire hsync,    // HSYNC (al conector VGA)
+    output wire vsync,    // VSYNC (al conector VGA)
+    output [7:0] red,     // RED (al resistor DAC del conector VGA)
+    output [7:0] green,   // GREEN (al resistor DAC del conector VGA)
+    output [7:0] blue,    // BLUE (al resistor DAC del conector VGA)
+    output sync,          // SYNC al conector VGA 
+    output clk,           // CLK al conector VGA 
+    output blank          // BLANK al conector VGA 
 );
 
-    // Horizontal parameters (measured in clock cycles)
-    parameter [9:0] H_ACTIVE  =  10'd_639 ;
-    parameter [9:0] H_FRONT   =  10'd_15 ;
-    parameter [9:0] H_PULSE   =  10'd_95 ;
-    parameter [9:0] H_BACK    =  10'd_47 ;
+    // Horizontal parameters (medidos en ciclos de reloj)
+    parameter [9:0] H_ACTIVE = 10'd_639 ;
+    parameter [9:0] H_FRONT = 10'd_15 ;
+    parameter [9:0] H_PULSE = 10'd_95 ;
+    parameter [9:0] H_BACK  = 10'd_47 ;
 
-    // Vertical parameters (measured in lines)
-    parameter [9:0] V_ACTIVE   =  10'd_479 ;
-    parameter [9:0] V_FRONT    =  10'd_9 ;
-    parameter [9:0] V_PULSE =  10'd_1 ;
-    parameter [9:0] V_BACK  =  10'd_32 ;
+    // Vertical parameters (medidos en lineas)
+    parameter [9:0] V_ACTIVE = 10'd_479 ;
+    parameter [9:0] V_FRONT = 10'd_9 ;
+    parameter [9:0] V_PULSE = 10'd_1 ;
+    parameter [9:0] V_BACK = 10'd_32 ;
 
     // Parameters for readability
-    parameter   LOW     = 1'b_0 ;
-    parameter   HIGH    = 1'b_1 ;
+    parameter LOW = 1'b_0 ;
+    parameter HIGH = 1'b_1 ;
 
     // States (more readable)
-    parameter   [7:0]    H_ACTIVE_STATE    = 8'd_0 ;
-    parameter   [7:0]   H_FRONT_STATE     = 8'd_1 ;
-    parameter   [7:0]   H_PULSE_STATE   = 8'd_2 ;
-    parameter   [7:0]   H_BACK_STATE     = 8'd_3 ;
+    parameter [7:0] H_ACTIVE_STATE = 8'd_0 ;
+    parameter [7:0] H_FRONT_STATE = 8'd_1 ;
+    parameter [7:0] H_PULSE_STATE = 8'd_2 ;
+    parameter [7:0] H_BACK_STATE = 8'd_3 ;
 
-    parameter   [7:0]    V_ACTIVE_STATE    = 8'd_0 ;
-    parameter   [7:0]   V_FRONT_STATE    = 8'd_1 ;
-    parameter   [7:0]   V_PULSE_STATE   = 8'd_2 ;
-    parameter   [7:0]   V_BACK_STATE     = 8'd_3 ;
+    parameter [7:0] V_ACTIVE_STATE = 8'd_0 ;
+    parameter [7:0] V_FRONT_STATE = 8'd_1 ;
+    parameter [7:0] V_PULSE_STATE = 8'd_2 ;
+    parameter [7:0] V_BACK_STATE = 8'd_3 ;
 
     // Clocked registers
-    reg              hysnc_reg ;
-    reg              vsync_reg ;
-    reg     [7:0]   red_reg ;
-    reg     [7:0]   green_reg ;
-    reg     [7:0]   blue_reg ;
-    reg              line_done ;
+    reg hysnc_reg ;
+    reg vsync_reg ;
+    reg [7:0] red_reg ;
+    reg [7:0] green_reg ;
+    reg [7:0] blue_reg ;
+    reg line_done ;
 
     // Control registers
-    reg     [9:0]   h_counter ;
-    reg     [9:0]   v_counter ;
+    reg [9:0] h_counter ;
+    reg [9:0] v_counter ;
 
-    reg     [7:0]    h_state ;
-    reg     [7:0]    v_state ;
+    reg [7:0] h_state ;
+    reg [7:0] v_state ;
 
     // State machine
     always@(posedge clock) begin
         // At reset . . .
         if (reset) begin
             // Zero the counters
-            h_counter   <= 10'd_0 ;
-            v_counter   <= 10'd_0 ;
+            h_counter <= 10'd_0 ;
+            v_counter <= 10'd_0 ;
             // States to ACTIVE
-            h_state     <= H_ACTIVE_STATE  ;
-            v_state     <= V_ACTIVE_STATE  ;
+            h_state <= H_ACTIVE_STATE  ;
+            v_state <= V_ACTIVE_STATE  ;
             // Deassert line done
             line_done   <= LOW ;
         end
@@ -164,7 +164,7 @@ module vga_driver (
     assign clk = clock ;
     assign sync = 1'b_0 ;
     assign blank = hysnc_reg & vsync_reg ;
-    // The x/y coordinates that should be available on the NEXT cycle
+    // Las coodernadas x/y que deben estar listas en el proximo ciclo
     assign next_x = (h_state==H_ACTIVE_STATE)?h_counter:10'd_0 ;
     assign next_y = (v_state==V_ACTIVE_STATE)?v_counter:10'd_0 ;
 
